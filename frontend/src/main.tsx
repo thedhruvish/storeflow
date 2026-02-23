@@ -39,7 +39,7 @@ if (rootElement && !rootElement.innerHTML) {
         <ThemeProvider>
           <QueryClientProvider client={queryClient}>
             <RouterProvider router={router} />
-            <Toaster position='left-bottom' />
+            <Toaster position='bottom-left' />
           </QueryClientProvider>
         </ThemeProvider>
       </GoogleOAuthProvider>
