@@ -13,7 +13,7 @@ permissions:
   contents: read
 
 jobs:
-  deploy:
+  deploy-frontend:
     runs-on: ubuntu-latest
 
     environment:
