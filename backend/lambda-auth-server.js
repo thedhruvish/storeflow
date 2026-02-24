@@ -12,7 +12,7 @@ import {
 } from "./validators/auth.validator.js";
 
 const app = express();
-
+app.set("trust proxy", 1);
 app.get("/", (req, res) => {
   res.send("Hello from lambda auth server!");
 });

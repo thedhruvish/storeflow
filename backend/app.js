@@ -22,6 +22,7 @@ import { startCronJobs } from "./cron-job/index.js";
 const cookieSecret = process.env.COOKIESECRETKEY || "DHRUVISH";
 
 const app = express();
+app.set("trust proxy", 1);
 
 // helmet
 app.use(
