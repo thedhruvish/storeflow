@@ -11,6 +11,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node --env-file-if-exists=.env index.js",
     "build": "node build.mjs",
+    "deploy:prod": "serverless deploy --stage prod",
     "dev": "node --env-file-if-exists=.env --watch  index.js",
     "format": "prettier --write \"**/*.js\""
   },
@@ -49,6 +50,7 @@
     "@types/express": "^5.0.6",
     "@types/mongoose": "^5.11.97",
     "@types/node": "^24.10.4",
-    "prettier": "^3.7.4"
+    "prettier": "^3.7.4",
+    "serverless": "^4.33.0"
   }
 }
