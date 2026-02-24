@@ -1,7 +1,6 @@
 import express from "express";
 import serverless from "serverless-http";
-import { connectDB } from "./config/db.js";
-import { connectRedis } from "./config/redis-client.js";
+import { getRedisClient } from "./config/redis-client.js";
 import { validateInput } from "./utils/validateInput.js";
 import {
   loginWithEmail,
@@ -55,7 +54,7 @@ app.use((err, req, res, next) => {
 
 export const handler = async (event, context) => {
   context.callbackWaitsForEmptyEventLoop = false;
-  await connectDB();
+  await getRedisClient();
   await connectRedis();
   return serverless(app)(event, context);
 };
