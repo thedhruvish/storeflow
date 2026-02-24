@@ -11,7 +11,7 @@ provider:
     name: ${env:AWS_BUCKET_NAME}
 
   environment:
-    NODE_ENV: ${self:provider.stage}
+    NODE_ENV: ${env:NODE_ENV}
 
 package:
   individually: true

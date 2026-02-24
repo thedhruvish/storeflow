@@ -45,6 +45,5 @@ jobs:
           aws-region: ${{ vars.BACKEND_AWS_REGION }}
 
       - name: Deploy to serverless
-        run:  serverless deploy --stage prod
+        run: serverless deploy --stage prod
         working-directory: ./backend
-
