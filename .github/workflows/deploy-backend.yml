@@ -46,4 +46,6 @@ jobs:
 
       - name: Deploy to serverless
         run: npm run deploy:prod
+        env:
+          SERVERLESS_LICENSE_KEY: ${{ secrets.SERVERLESS_LICENSE_KEY }}
         working-directory: ./backend
