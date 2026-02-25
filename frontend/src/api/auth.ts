@@ -29,27 +29,27 @@ export const useRegisterMutation = () => {
 export const useGetCurrentUser = () => {
   return useQuery({
     queryKey: ["user"],
-    queryFn: () => axiosClient.get("/auth/me"),
+    queryFn: () => axiosClient.get("/sso/me"),
   });
 };
 
 export const useLogout = () => {
   return useMutation({
-    mutationFn: () => axiosClient.post("/auth/logout"),
+    mutationFn: () => axiosClient.post("/sso/logout"),
   });
 };
 
 export const useLoginWithGoogle = () => {
   return useMutation({
     mutationFn: (data: { idToken: string }) =>
-      axiosClient.post("/auth/google", data),
+      axiosClient.post("/sso/google", data),
   });
 };
 
 export const useLoginWithGithub = () => {
   return useMutation({
     mutationFn: (data: { hint: "LOGIN" | "LINK"; userId?: string }) =>
-      axiosClient.post("/auth/github", data),
+      axiosClient.post("/sso/github", data),
   });
 };
 
@@ -57,7 +57,7 @@ export const useLoginWithGithub = () => {
 export const useVerifyOtp = () => {
   return useMutation({
     mutationFn: (data: { otp: string; userId: string }) =>
-      axiosClient.post("/auth/otp-verify", data),
+      axiosClient.post("/sso/otp-verify", data),
   });
 };
 
@@ -65,14 +65,14 @@ export const useVerifyOtp = () => {
 export const useResendOtp = () => {
   return useMutation({
     mutationFn: (data: { userId: string }) =>
-      axiosClient.post("/auth/resend-otp", data),
+      axiosClient.post("/sso/resend-otp", data),
   });
 };
 
 export const useTwosteupSet = () => {
   return useMutation({
     mutationFn: (data: { method: "totp" | "passkeys" }) =>
-      axiosClient.post("/auth/2fa/register/setup", data),
+      axiosClient.post("/sso/2fa/register/setup", data),
   });
 };
 
@@ -80,7 +80,7 @@ export const useTotpVerify = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (data: { token: string; friendlyName: string }) =>
-      axiosClient.post("/auth/2fa/register/totp", data),
+      axiosClient.post("/sso/2fa/register/totp", data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["settings", "info"] });
     },
@@ -93,7 +93,7 @@ export const usePasskeysRegistrationVerify = () => {
     mutationFn: (data: {
       response: RegistrationResponseJSON;
       friendlyName: string;
-    }) => axiosClient.post("/auth/2fa/register/passkeys", data),
+    }) => axiosClient.post("/sso/2fa/register/passkeys", data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["settings", "info"] });
     },
@@ -106,14 +106,14 @@ export const usePasskeysRegistrationVerify = () => {
 export const useLoginWithTotp = () => {
   return useMutation({
     mutationFn: (data: { token: string; userId: string }) =>
-      axiosClient.post("/auth/2fa/login/totp", data),
+      axiosClient.post("/sso/2fa/login/totp", data),
   });
 };
 
 export const useLoginWithPasskeyChallenge = () => {
   return useMutation({
     mutationFn: (data: { userId: string }) =>
-      axiosClient.post("/auth/2fa/login/passkey-challenge", data),
+      axiosClient.post("/sso/2fa/login/passkey-challenge", data),
   });
 };
 
@@ -122,7 +122,7 @@ export const useLoginWithPasskeyChallengeVerify = () => {
     mutationFn: (data: {
       response: AuthenticationResponseJSON;
       userId: string;
-    }) => axiosClient.post("/auth/2fa/login/passkey-verify", data),
+    }) => axiosClient.post("/sso/2fa/login/passkey-verify", data),
   });
 };
 
@@ -134,7 +134,7 @@ export const useLoginWithPasskeyChallengeVerify = () => {
 export const useSendOtpToEmail = () => {
   return useMutation({
     mutationFn: (data: { email: string; password: string; otp: string }) =>
-      axiosClient.post("/auth/link/email/verify-otp", data),
+      axiosClient.post("/sso/link/email/verify-otp", data),
   });
 };
 
@@ -142,7 +142,7 @@ export const useLinkEmailMutation = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (data: { email: string; password: string }) => {
-      const res = await axiosClient.post("/auth/link/email", data);
+      const res = await axiosClient.post("/sso/link/email", data);
       return res.data;
     },
     onSuccess: () => {
@@ -155,7 +155,7 @@ export const useConnectGoogle = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async ({ idToken }: { idToken: string }) => {
-      await axiosClient.post(`/auth/link/google`, { idToken });
+      await axiosClient.post(`/sso/link/google`, { idToken });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["settings", "info"] });
@@ -167,7 +167,7 @@ export const useDisconnectLinkedAccount = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (data: { id: string }) => {
-      await axiosClient.delete(`/auth/unlink/${data.id}`);
+      await axiosClient.delete(`/sso/unlink/${data.id}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["settings", "info"] });
@@ -179,7 +179,7 @@ export const useDeleteSession = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (id?: string) => {
-      await axiosClient.delete(`/auth/session/${id ? id : ""}`);
+      await axiosClient.delete(`/sso/session/${id ? id : ""}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["settings", "info"] });
