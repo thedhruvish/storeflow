@@ -13,8 +13,7 @@ import {
   DIRECTORY_UPLOAD_FOLDER,
   PRESIGNED_URL_EXPIRATION,
 } from "../constants/s3.constants.js";
-
-const privateKey = process.env.PRIVATE_KEY;
+import { CLOUDFRONT_PRIVATE_KEY } from "../constants/constant.js";
 
 export const generatePresignedUrl = async (
   fileName,
@@ -64,7 +63,7 @@ export const getSignedUrlForGetObject = async (
   try {
     let url = null;
     const keyObject = `${parentDir}${encodeURIComponent(key)}`;
-    if (privateKey) {
+    if (CLOUDFRONT_PRIVATE_KEY || process.env.SECRET_CF_KEY) {
       url = generateCloudfrontSignedUrl(
         keyObject,
         fileName,
