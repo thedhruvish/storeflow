@@ -107,9 +107,10 @@ app.use((err, req, res, next) => {
   });
 });
 
+await getRedisClient();
+await connectDB();
+
 export const handler = async (event, context) => {
   context.callbackWaitsForEmptyEventLoop = false;
-  await getRedisClient();
-  await connectDB();
   return serverless(app)(event, context);
 };
