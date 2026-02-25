@@ -2,7 +2,7 @@ import express from "express";
 import cors from "cors";
 import cookiesParser from "cookie-parser";
 import serverless from "serverless-http";
-import { getRedisClient } from "./config/redis-client.js";
+import "./config/redis-client.js";
 import { validateInput } from "./utils/validateInput.js";
 import {
   loginWithEmail,
@@ -107,7 +107,6 @@ app.use((err, req, res, next) => {
   });
 });
 
-await getRedisClient();
 await connectDB();
 
 export const handler = async (event, context) => {

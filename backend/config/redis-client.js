@@ -1,62 +1,19 @@
 import { createClient } from "redis";
 
-let redisClient = null;
-let isConnecting = false;
+if (!process.env.REDIS_URL) {
+  throw new Error(
+    "REDIS_URL is not defined add it in env file, key name is REDIS_URL",
+  );
+}
 
-export const getRedisClient = async () => {
-  // Return existing connected client
-  if (redisClient?.isReady) {
-    return redisClient;
-  }
+const redisClient = createClient({
+  url: process.env.REDIS_URL,
+});
 
-  if (isConnecting) {
-    while (isConnecting) {
-      await new Promise((resolve) => setTimeout(resolve, 100));
-    }
-    return redisClient;
-  }
+redisClient.on("error", (err) => {
+  console.error("❗ Redis Client Error:", err.message);
+});
 
-  if (!process.env.REDIS_URL) {
-    throw new Error("REDIS_URL is not defined in environment variables");
-  }
-
-  isConnecting = true;
-
-  try {
-    redisClient = createClient({
-      url: process.env.REDIS_URL,
-      socket: {
-        connectTimeout: 6000,
-        commandTimeout: 6000,
-        keepAlive: true,
-        reconnectStrategy: (retries) => {
-          if (retries > 3) return new Error("Max retries exceeded");
-          return Math.min(retries * 100, 1000);
-        },
-      },
-      disableOfflineQueue: true,
-    });
-
-    redisClient.on("error", (err) => {
-      console.error("Redis Client Error:", err.message);
-    });
-
-    redisClient.on("connect", () => {
-      console.log("Redis connected");
-    });
-
-    redisClient.on("reconnecting", () => {
-      console.log("Redis reconnecting...");
-    });
-
-    await redisClient.connect();
-  } catch (error) {
-    console.error("Redis connection failed:", error);
-    redisClient = null;
-    throw error;
-  } finally {
-    isConnecting = false;
-  }
-};
+await redisClient.connect();
 
 export default redisClient;
