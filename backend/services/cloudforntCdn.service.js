@@ -2,7 +2,7 @@ import { getSignedUrl } from "@aws-sdk/cloudfront-signer";
 
 const cloudfrontDistributionDomain = process.env.CLOUDFRONT_DISTRIBUTION_DOMAIN;
 // const privateKey = process.env.PRIVATE_KEY;
-// const keyPairId = process.env.KEY_PAIR_ID;
+const keyPairId = process.env.KEY_PAIR_ID;
 
 const dateLessThan = new Date(Date.now() + 3600 * 1000);
 
@@ -31,7 +31,7 @@ export const generateCloudfrontSignedUrl = (
   const url = `${cloudfrontDistributionDomain}/${s3ObjectKey}?response-content-disposition=${encodeURIComponent(`${isDownload ? "attachment" : "inline"} ;filename="${safeFileName}"`)}`;
   const signedUrl = getSignedUrl({
     url,
-    // keyPairId,
+    keyPairId,
     dateLessThan,
     // privateKey,
   });
