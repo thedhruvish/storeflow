@@ -1,4 +1,5 @@
 import express from "express";
+import cors from "cors";
 import serverless from "serverless-http";
 import { getRedisClient } from "./config/redis-client.js";
 import { validateInput } from "./utils/validateInput.js";
@@ -10,29 +11,77 @@ import {
   loginWithEmailValidation,
   registerWithEmailValidation,
 } from "./validators/auth.validator.js";
+import { getRequestInfo } from "./middlewares/getRequestInfo.middleware.js";
+import helmet from "helmet";
+import { connectDB } from "./config/db.js";
 
 const app = express();
+
 app.set("trust proxy", 1);
+
+app.use(
+  helmet({
+    crossOriginResourcePolicy: { policy: "same-site" },
+    contentSecurityPolicy: {
+      directives: {
+        reportUri: "/report-violation",
+      },
+    },
+  }),
+);
+// cors allow
+const allowedOrigins = process.env.FRONTEND_URL
+  ? process.env.FRONTEND_URL.split(",")
+  : ["http://localhost:3000"];
+
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      if (!origin) return callback(null, true);
+      if (allowedOrigins.includes(origin)) return callback(null, true);
+      return callback(new Error("Not allowed by CORS"));
+    },
+    credentials: true,
+  }),
+);
+
+app.post(
+  "/report-violation",
+  express.json({ type: "application/csp-report" }),
+  (req, res) => {
+    console.log(req.body);
+    res.status(200).json({ success: true });
+  },
+);
+
 app.get("/", (req, res) => {
   res.send("Hello from lambda auth server!");
 });
-
+app.use((req, res, next) => {
+  console.log(req.url);
+  console.log(req.path);
+  next();
+});
 app.use(getRequestInfo);
 
 app.post(
-  "/register",
+  "/auth/register",
   validateInput(registerWithEmailValidation),
   registerWithEmail,
 );
 
-app.post("/login", validateInput(loginWithEmailValidation), loginWithEmail);
+app.post(
+  "/auth/login",
+  validateInput(loginWithEmailValidation),
+  loginWithEmail,
+);
 
 // 404 not found
 app.use((req, res) => {
   res.status(404).json({
     success: false,
     statusCode: 404,
-    message: "Not Found...",
+    message: "Not Found......",
   });
 });
 
@@ -55,6 +104,6 @@ app.use((err, req, res, next) => {
 export const handler = async (event, context) => {
   context.callbackWaitsForEmptyEventLoop = false;
   await getRedisClient();
-  await connectRedis();
+  await connectDB();
   return serverless(app)(event, context);
 };
