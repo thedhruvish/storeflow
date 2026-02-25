@@ -1,5 +1,6 @@
 import express from "express";
 import cors from "cors";
+import cookiesParser from "cookie-parser";
 import serverless from "serverless-http";
 import { getRedisClient } from "./config/redis-client.js";
 import { validateInput } from "./utils/validateInput.js";
@@ -14,6 +15,8 @@ import {
 import { getRequestInfo } from "./middlewares/getRequestInfo.middleware.js";
 import helmet from "helmet";
 import { connectDB } from "./config/db.js";
+
+const cookieSecret = process.env.COOKIESECRETKEY || "DHRUVISH";
 
 const app = express();
 
@@ -53,6 +56,9 @@ app.post(
     res.status(200).json({ success: true });
   },
 );
+app.use(express.json());
+
+app.use(cookiesParser(cookieSecret));
 
 app.get("/", (req, res) => {
   res.send("Hello from lambda auth server!");
