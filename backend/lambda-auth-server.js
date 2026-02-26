@@ -63,11 +63,7 @@ app.use(cookiesParser(cookieSecret));
 app.get("/", (req, res) => {
   res.send("Hello from lambda auth server!");
 });
-app.use((req, res, next) => {
-  console.log(req.url);
-  console.log(req.path);
-  next();
-});
+
 app.use(getRequestInfo);
 
 app.post(

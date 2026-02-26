@@ -29,14 +29,19 @@ const sanitizeFilenameASCII = (filename) => {
 
 async function getPrivateKey() {
   if (cachedPrivateKey) return cachedPrivateKey;
+  const SecretId = process.env.SECRET_CF_KEY;
 
   const res = await secretsClient.send(
     new GetSecretValueCommand({
-      SecretId: process.env.SECRET_CF_KEY,
+      SecretId,
     }),
   );
 
-  cachedPrivateKey = res.SecretString;
+  const secretString = res.SecretString;
+  const privateKey = JSON.parse(secretString);
+
+  cachedPrivateKey = privateKey[SecretId];
+
   return cachedPrivateKey;
 }
 
@@ -51,14 +56,13 @@ export const generateCloudfrontSignedUrl = async (
   } else {
     privateKey = await getPrivateKey();
   }
-  console.log({ privateKey });
   const safeFileName = sanitizeFilenameASCII(fileName);
   const url = `${cloudfrontDistributionDomain}/${s3ObjectKey}?response-content-disposition=${encodeURIComponent(`${isDownload ? "attachment" : "inline"} ;filename="${safeFileName}"`)}`;
   const signedUrl = getSignedUrl({
     url,
     keyPairId,
     dateLessThan,
-    privateKey,
+    privateKey: atob(privateKey),
   });
   return signedUrl;
 };

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
+import { APP_NAME } from "@/contansts";
 import {
   FileQuestion,
   Home,
@@ -9,7 +10,6 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { APP_NAME } from "@/contansts";
 
 interface Error404Props {
   errorTitle?: string;
@@ -43,7 +43,8 @@ export default function Error404({
       <div className='flex items-center mb-8'>
         <DownloadCloud className={`h-8 w-8 mr-3 `} />
         <h1 className='text-2xl font-bold'>
-          {APP_NAME}<span className='text-blue-600'>cloud</span>
+          {APP_NAME}
+          <span className='text-blue-600'>cloud</span>
         </h1>
       </div>
 
@@ -113,7 +114,9 @@ export default function Error404({
 
       {/* Footer */}
       <footer className='mt-8 text-center text-sm text-muted-foreground'>
-        <p>© {new Date().getFullYear()} {APP_NAME}. All rights reserved.</p>
+        <p>
+          © {new Date().getFullYear()} {APP_NAME}. All rights reserved.
+        </p>
       </footer>
     </div>
   );

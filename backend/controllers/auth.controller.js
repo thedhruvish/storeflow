@@ -54,7 +54,7 @@ export const loginWithEmail = async (req, res) => {
       }),
     );
   }
-  console.log(result);
+
   res.cookie("sessionId", result.sessionId, SESSION_OPTIONS);
 
   res.status(200).json(

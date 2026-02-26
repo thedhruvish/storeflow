@@ -69,7 +69,7 @@ export const getUserSubscriptionHistory = async (req, res) => {
 export const updatePaymentMethodDetails = async (req, res) => {
   const user = await User.findById(req.user._id);
   const session = await createCustomerPortalSession(user.stripeCustomerId);
-  console.log(session);
+
   res
     .status(200)
     .json(
