@@ -66,8 +66,7 @@ export const getSignedUrlForGetObject = async (
     const keyObject = `${parentDir}${encodeURIComponent(key)}`;
     console.log({ CLOUDFRONT_PRIVATE_KEY, cf: process.env.SECRET_CF_KEY });
     if (CLOUDFRONT_PRIVATE_KEY || process.env.SECRET_CF_KEY) {
-      console.log("run testing");
-      url = generateCloudfrontSignedUrl(
+      url = await generateCloudfrontSignedUrl(
         keyObject,
         fileName,
         isDownload,

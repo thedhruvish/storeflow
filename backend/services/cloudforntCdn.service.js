@@ -49,7 +49,7 @@ export const generateCloudfrontSignedUrl = async (
   if (CLOUDFRONT_PRIVATE_KEY) {
     privateKey = CLOUDFRONT_PRIVATE_KEY;
   } else {
-    privateKey = getPrivateKey();
+    privateKey = await getPrivateKey();
   }
   console.log({ privateKey });
   const safeFileName = sanitizeFilenameASCII(fileName);
