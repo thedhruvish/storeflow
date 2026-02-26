@@ -1,13 +1,15 @@
 import { getSignedUrl } from "@aws-sdk/cloudfront-signer";
-import { secretsClient } from "../lib/secrets-manager.client";
+import { secretsClient } from "../lib/secrets-manager.client.js";
 import { GetSecretValueCommand } from "@aws-sdk/client-secrets-manager";
-import { CLOUDFRONT_PRIVATE_KEY } from "../constants/constant";
+import { CLOUDFRONT_PRIVATE_KEY } from "../constants/constant.js";
 
 const cloudfrontDistributionDomain = process.env.CLOUDFRONT_DISTRIBUTION_DOMAIN;
 
 const keyPairId = process.env.KEY_PAIR_ID;
 
 const dateLessThan = new Date(Date.now() + 3600 * 1000);
+
+let cachedPrivateKey;
 
 const sanitizeFilenameASCII = (filename) => {
   const unique = Date.now().toString(36);
@@ -25,6 +27,19 @@ const sanitizeFilenameASCII = (filename) => {
   return `download-${unique}${ext}`;
 };
 
+async function getPrivateKey() {
+  if (cachedPrivateKey) return cachedPrivateKey;
+
+  const res = await secretsClient.send(
+    new GetSecretValueCommand({
+      SecretId: process.env.SECRET_CF_KEY,
+    }),
+  );
+
+  cachedPrivateKey = res.SecretString;
+  return cachedPrivateKey;
+}
+
 export const generateCloudfrontSignedUrl = async (
   s3ObjectKey,
   fileName,
@@ -34,20 +49,16 @@ export const generateCloudfrontSignedUrl = async (
   if (CLOUDFRONT_PRIVATE_KEY) {
     privateKey = CLOUDFRONT_PRIVATE_KEY;
   } else {
-    const response = await secretsClient.send(
-      new GetSecretValueCommand({
-        SecretId: process.env.SECRET_CF_KEY,
-      }),
-    );
-    privateKey = response.SecretString;
+    privateKey = getPrivateKey();
   }
+  console.log({ privateKey });
   const safeFileName = sanitizeFilenameASCII(fileName);
   const url = `${cloudfrontDistributionDomain}/${s3ObjectKey}?response-content-disposition=${encodeURIComponent(`${isDownload ? "attachment" : "inline"} ;filename="${safeFileName}"`)}`;
   const signedUrl = getSignedUrl({
     url,
     keyPairId,
     dateLessThan,
-    privateKey: btoa(privateKey),
+    privateKey,
   });
   return signedUrl;
 };
