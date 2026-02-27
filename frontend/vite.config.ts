@@ -42,16 +42,47 @@ export default defineConfig({
         ],
       },
       workbox: {
+        cleanupOutdatedCaches: true,
+        clientsClaim: true,
+        skipWaiting: true,
+
         globPatterns: ["**/*.{js,css,html,ico,png,svg,woff2}"],
+
         runtimeCaching: [
+          // ✅ HTML pages (only visited page is fetched)
           {
-            urlPattern: /^https:\/\/storeone\.cloud\/.*/i,
+            urlPattern: ({ request }) => request.mode === "navigate",
             handler: "NetworkFirst",
+            options: {
+              cacheName: "pages-cache",
+              expiration: {
+                maxEntries: 20,
+                maxAgeSeconds: 60 * 60 * 24, // 1 day
+              },
+            },
+          },
+          {
+            urlPattern: ({ request }) =>
+              request.destination === "script" ||
+              request.destination === "style",
+            handler: "CacheFirst",
             options: {
               cacheName: "assets-cache",
               expiration: {
                 maxEntries: 100,
-                maxAgeSeconds: 60 * 60 * 24, // 24 hours
+                maxAgeSeconds: 60 * 60 * 24 * 30, // 30 days
+              },
+            },
+          },
+
+          {
+            urlPattern: ({ request }) => request.destination === "font",
+            handler: "CacheFirst",
+            options: {
+              cacheName: "media-cache",
+              expiration: {
+                maxEntries: 100,
+                maxAgeSeconds: 60 * 60 * 24 * 60, // 60 days
               },
             },
           },

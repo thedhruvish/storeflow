@@ -3,6 +3,7 @@ import ReactDOM from "react-dom/client";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { RouterProvider, createRouter } from "@tanstack/react-router";
 import { GoogleOAuthProvider } from "@react-oauth/google";
+import { registerSW } from "virtual:pwa-register";
 import { ThemeProvider } from "./components/theme-provider.tsx";
 import { Toaster } from "./components/ui/sonner.tsx";
 import { queryClient } from "./lib/query-client.ts";
@@ -28,7 +29,14 @@ declare module "@tanstack/react-router" {
     router: typeof router;
   }
 }
-
+registerSW({
+  immediate: true,
+  onNeedRefresh() {
+    if (confirm("New version available. Reload now?")) {
+      window.location.reload();
+    }
+  },
+});
 // Render the app
 const rootElement = document.getElementById("dhruvish");
 if (rootElement && !rootElement.innerHTML) {
