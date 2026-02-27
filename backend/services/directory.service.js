@@ -246,8 +246,8 @@ export const updateParentDirectorySize = async (dirId, size) => {
   }
 };
 
-export const singleFindDirectory = async (dirId, select) => {
-  return Directory.findById(dirId, select);
+export const singleFindDirectory = async (dirId, select, populate) => {
+  return Directory.findById(dirId, select).populate(populate);
 };
 
 export const emptyTrash = async (userId) => {

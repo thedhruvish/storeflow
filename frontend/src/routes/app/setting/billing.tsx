@@ -1,14 +1,30 @@
 import { useEffect, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
+import {
+  BillingPageSkeleton,
+  ErrorState,
+} from "@/pages/profile/bills/billing-page-skeleton";
+import { HistoryCard } from "@/pages/profile/bills/history-card";
+import {
+  getStatusColor,
+  getStatusVariant,
+  getSubscriptionDetails,
+} from "@/pages/profile/bills/subscription-detials";
 import { SubscriptionCycleDialog } from "@/pages/website/subscription-cycle-dialog";
 import {
-  AlertCircle,
   CalendarDays,
   Database,
   Loader2,
   Package,
   AlertTriangle,
+  CreditCard,
+  Sparkles,
+  RefreshCw,
+  Pause,
+  Play,
+  Settings,
+  Receipt,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -29,64 +45,22 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { Separator } from "@/components/ui/separator";
 
 export const Route = createFileRoute("/app/setting/billing")({
   component: BillingSettingsPage,
 });
 
-const getStatusVariant = (
-  status: ApiSubscription["status"]
-): "default" | "destructive" | "secondary" | "outline" => {
-  switch (status) {
-    case "active":
-    case "partial_active":
-      return "default";
-    case "cancelled":
-      return "destructive";
-    case "failed":
-      return "destructive";
-    case "paused":
-      return "secondary";
-    case "past_due":
-      return "secondary";
-    case "expired":
-      return "outline";
-    default:
-      return "secondary";
-  }
-};
-
-const getSubscriptionDetails = (sub: ApiSubscription) => {
-  const startDate = new Date(sub.startDate);
-  const endDate = new Date(sub.endDate);
-  const diffTime = Math.abs(endDate.getTime() - startDate.getTime());
-  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-  const isYearly = diffDays > 40; // Rough check, monthly is ~30, yearly ~365
-
-  // Fallback to monthly if checking fails or something odd
-  const interval = isYearly ? "year" : "month";
-  const planDetails = isYearly ? sub.planId.yearly : sub.planId.monthly;
-
-  const isStripe = sub.paymentType === "stripe";
-  const price = isStripe ? planDetails.priceUSD : planDetails.priceINR;
-  const currency = (isStripe ? "USD" : "INR") as "USD" | "INR";
-
-  return { price, currency, interval, isStripe, planDetails };
-};
-
 export function BillingSettingsPage() {
   const [selectedSub, setSelectedSub] = useState<ApiSubscription | null>(null);
   // Use the hook to fetch data
-  const { data: subscriptions, isLoading, isError } = useGetAllSubscriptions();
+  const {
+    data: subscriptions,
+    isLoading,
+    isError,
+    error,
+    refetch,
+  } = useGetAllSubscriptions();
   const { mutate: toggleSubscriptionMutation, isPending: isTogglingPaused } =
     useToggleSubscriptionPaused();
   const {
@@ -101,8 +75,8 @@ export function BillingSettingsPage() {
       if (event.key === "payment_status" && event.newValue === "SUCCESS") {
         // Payment was successful!
         toast.success("Payment successful! Refreshing data.");
-
         localStorage.removeItem("payment_status");
+        queryClient.invalidateQueries({ queryKey: ["subscriptions"] });
       }
     };
 
@@ -114,6 +88,7 @@ export function BillingSettingsPage() {
       window.removeEventListener("storage", handleStorageChange);
     };
   }, [queryClient]);
+
   const updatePaymentDetails = () => {
     updatePaymentDetailsMutation(undefined, {
       onSuccess: (data) => {
@@ -121,6 +96,7 @@ export function BillingSettingsPage() {
       },
     });
   };
+
   const today = new Date();
 
   let currentSubscription = subscriptions?.find((sub) => {
@@ -147,43 +123,54 @@ export function BillingSettingsPage() {
       currentSubscription = sortedSubs[0];
     }
   }
+
   if (isLoading) {
-    return (
-      <div className='flex min-h-[400px] w-full items-center justify-center p-8'>
-        <Loader2 className='h-8 w-8 animate-spin text-muted-foreground' />
-      </div>
-    );
+    return <BillingPageSkeleton />;
   }
 
   if (isError) {
-    return (
-      <Card className='border-destructive'>
-        <CardHeader>
-          <CardTitle className='flex items-center gap-2'>
-            <AlertCircle className='h-5 w-5 text-destructive' />
-            Error Loading Subscriptions
-          </CardTitle>
-          <CardDescription>
-            There was a problem fetching your billing details. Please try again
-            later.
-          </CardDescription>
-        </CardHeader>
-      </Card>
-    );
+    return <ErrorState error={error} onRetry={refetch} />;
   }
 
   return (
-    <div className='space-y-8 p-4 md:p-8'>
-      <h1 className='text-2xl font-bold'>Billing & Subscriptions</h1>
+    <div className='space-y-8 p-3 sm:p-4 md:p-6 lg:p-8 '>
+      {/* Page Header */}
+      <div className='flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4'>
+        <div>
+          <h1 className='text-2xl sm:text-3xl font-bold tracking-tight'>
+            Billing & Subscriptions
+          </h1>
+          <p className='text-muted-foreground mt-1'>
+            Manage your subscription and billing history
+          </p>
+        </div>
+        <Button
+          variant='outline'
+          size='sm'
+          onClick={() => refetch()}
+          className='gap-2 self-start sm:self-auto'
+        >
+          <RefreshCw className='h-4 w-4' />
+          Refresh
+        </Button>
+      </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Current Plan</CardTitle>
-          <CardDescription>
-            Manage your active subscription and payment details.
-          </CardDescription>
+      {/* Current Plan Card */}
+      <Card className='overflow-hidden border-2 border-border/50'>
+        <CardHeader className='pb-4 bg-muted/30'>
+          <div className='flex items-center gap-2'>
+            <div className='p-2 rounded-lg bg-primary/10'>
+              <CreditCard className='h-5 w-5 text-primary' />
+            </div>
+            <div>
+              <CardTitle className='text-lg'>Current Plan</CardTitle>
+              <CardDescription>
+                Manage your active subscription and payment details
+              </CardDescription>
+            </div>
+          </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className='pt-6'>
           {currentSubscription ? (
             (() => {
               const { price, currency, interval, isStripe } =
@@ -200,24 +187,21 @@ export function BillingSettingsPage() {
               return (
                 <>
                   {isFailed && (
-                    <Alert
-                      variant='destructive'
-                      className='mb-6 flex items-center justify-between'
-                    >
-                      <div className='flex items-start'>
-                        <AlertTriangle className='h-4 w-4 flex-shrink-0' />
-                        <div className='ml-3'>
-                          <AlertTitle>Payment Failed</AlertTitle>
-                          <AlertDescription>
-                            Your last payment for this plan failed. Please
-                            update your payment method to restore access.
-                          </AlertDescription>
-                        </div>
+                    <Alert variant='destructive' className='mb-6'>
+                      <AlertTriangle className='h-4 w-4' />
+                      <div className='ml-2 flex-1'>
+                        <AlertTitle className='flex items-center gap-2'>
+                          Payment Failed
+                        </AlertTitle>
+                        <AlertDescription className='mt-1'>
+                          Your last payment for this plan failed. Please update
+                          your payment method to restore access.
+                        </AlertDescription>
                       </div>
-
                       <Button
-                        variant={"destructive"}
-                        className='ml-6 flex-shrink-0'
+                        variant='destructive'
+                        size='sm'
+                        className='shrink-0 ml-4'
                         onClick={() => {
                           const len =
                             currentSubscription.stripeSubscriptionCycle.length;
@@ -237,59 +221,89 @@ export function BillingSettingsPage() {
                     </Alert>
                   )}
 
-                  <div className='flex flex-col space-y-4 md:flex-row md:items-start md:justify-between md:space-y-0'>
-                    <div className='flex-1 space-y-1.5'>
-                      <div className='flex items-center gap-3'>
-                        <h3 className='text-lg font-semibold'>
+                  <div className='flex flex-col lg:flex-row gap-6 lg:gap-8'>
+                    {/* Plan Info */}
+                    <div className='flex-1 space-y-4'>
+                      <div className='flex flex-wrap items-center gap-3'>
+                        <h3 className='text-xl sm:text-2xl font-bold'>
                           {currentSubscription.planId.title}
                         </h3>
                         <Badge
                           variant={getStatusVariant(currentSubscription.status)}
-                          className='capitalize'
+                          className={`capitalize ${getStatusColor(currentSubscription.status)} border`}
                         >
                           {currentSubscription.status}
                         </Badge>
                       </div>
 
-                      <p className='text-lg text-muted-foreground'>
-                        {formatCurrency(price, currency, {
-                          amountInSmallestUnit: false,
-                        })}{" "}
-                        / {interval}
-                      </p>
+                      <div className='flex items-baseline gap-1'>
+                        <span className='text-3xl sm:text-4xl font-bold text-primary'>
+                          {formatCurrency(price, currency, {
+                            amountInSmallestUnit: false,
+                          })}
+                        </span>
+                        <span className='text-muted-foreground'>
+                          / {interval}
+                        </span>
+                      </div>
 
-                      <div className='space-y-2 pt-4'>
-                        <div className='flex items-center text-sm'>
-                          <Database className='mr-2 h-4 w-4 text-muted-foreground' />
-                          <span className='text-muted-foreground'>
-                            Storage:
-                          </span>
-                          <strong className='ml-1.5'>
-                            {formatFileSize(
-                              currentSubscription.planId.totalBytes
-                            )}
-                          </strong>
+                      <Separator className='my-4' />
+
+                      <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4'>
+                        <div className='flex items-center gap-3 p-3 rounded-lg bg-muted/50'>
+                          <div className='p-2 rounded-md bg-primary/10'>
+                            <Database className='h-4 w-4 text-primary' />
+                          </div>
+                          <div>
+                            <p className='text-xs text-muted-foreground'>
+                              Storage
+                            </p>
+                            <p className='font-semibold text-sm'>
+                              {formatFileSize(
+                                currentSubscription.planId.totalBytes
+                              )}
+                            </p>
+                          </div>
                         </div>
-                        <div className='flex items-center text-sm'>
-                          <CalendarDays className='mr-2 h-4 w-4 text-muted-foreground' />
-                          <span className='text-muted-foreground'>
-                            {isActive ? "Renews on:" : "Period End:"}
-                          </span>
-                          <strong className='ml-1.5'>
-                            {formatDate(currentSubscription.endDate)}
-                          </strong>
+
+                        <div className='flex items-center gap-3 p-3 rounded-lg bg-muted/50'>
+                          <div className='p-2 rounded-md bg-primary/10'>
+                            <CalendarDays className='h-4 w-4 text-primary' />
+                          </div>
+                          <div>
+                            <p className='text-xs text-muted-foreground'>
+                              {isActive ? "Renews on" : "Period ends"}
+                            </p>
+                            <p className='font-semibold text-sm'>
+                              {formatDate(currentSubscription.endDate)}
+                            </p>
+                          </div>
                         </div>
-                        <div className='flex items-center text-sm'>
-                          <Package className='mr-2 h-4 w-4 text-muted-foreground' />
-                          <span className='text-muted-foreground'>
-                            Subscription Id:
-                          </span>
-                          <strong className='ml-1.5'>
-                            {isStripe
-                              ? currentSubscription.stripeSubscriptionId
-                              : currentSubscription.razorpaySubscriptionId}
-                          </strong>
+
+                        <div className='flex items-center gap-3 p-3 rounded-lg bg-muted/50'>
+                          <div className='p-2 rounded-md bg-primary/10'>
+                            <Receipt className='h-4 w-4 text-primary' />
+                          </div>
+                          <div>
+                            <p className='text-xs text-muted-foreground'>
+                              Payment
+                            </p>
+                            <p className='font-semibold text-sm capitalize'>
+                              {currentSubscription.paymentType}
+                            </p>
+                          </div>
                         </div>
+                      </div>
+
+                      <div className='pt-2'>
+                        <p className='text-xs text-muted-foreground mb-1'>
+                          Subscription ID
+                        </p>
+                        <code className='text-xs sm:text-sm bg-muted px-2 py-1 rounded font-mono break-all'>
+                          {isStripe
+                            ? currentSubscription.stripeSubscriptionId
+                            : currentSubscription.razorpaySubscriptionId}
+                        </code>
                       </div>
                     </div>
                   </div>
@@ -297,13 +311,18 @@ export function BillingSettingsPage() {
               );
             })()
           ) : (
-            <div className='flex min-h-[150px] flex-col items-center justify-center rounded-md border border-dashed p-8 text-center'>
-              <Package className='h-10 w-10 text-muted-foreground' />
-              <p className='mt-4 font-medium'>No Subscription Found</p>
-              <p className='text-sm text-muted-foreground'>
-                You do not have an active or previous subscription.
+            <div className='flex flex-col items-center justify-center py-12 px-4 text-center'>
+              <div className='h-16 w-16 rounded-full bg-muted flex items-center justify-center mb-4'>
+                <Package className='h-8 w-8 text-muted-foreground' />
+              </div>
+              <h3 className='text-lg font-semibold mb-2'>
+                No Active Subscription
+              </h3>
+              <p className='text-sm text-muted-foreground max-w-sm mb-6'>
+                You don&apos;t have an active subscription. Explore our plans to
+                get started with premium features.
               </p>
-              <Button asChild className='mt-4'>
+              <Button asChild className='gap-2'>
                 <Link
                   to='/pricing'
                   search={{
@@ -311,6 +330,7 @@ export function BillingSettingsPage() {
                     currency: "USD",
                   }}
                 >
+                  <Sparkles className='h-4 w-4' />
                   View Plans
                 </Link>
               </Button>
@@ -318,19 +338,26 @@ export function BillingSettingsPage() {
           )}
         </CardContent>
         {currentSubscription && (
-          <CardFooter className='flex flex-col items-start gap-4 border-t pt-6 md:flex-row md:justify-between'>
+          <CardFooter className='flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 border-t bg-muted/20 pt-4 pb-4'>
             <Button
               variant='outline'
               onClick={updatePaymentDetails}
               disabled={isPendingUpdatePaymentDetails}
+              className='gap-2'
             >
-              Manage Subscription
+              <Settings className='h-4 w-4' />
+              {isPendingUpdatePaymentDetails ? (
+                <>
+                  <Loader2 className='h-4 w-4 animate-spin' />
+                  Loading...
+                </>
+              ) : (
+                "Manage Subscription"
+              )}
             </Button>
             <Button
               variant={
-                currentSubscription.isPauseCollection
-                  ? "outline"
-                  : "destructive"
+                currentSubscription.isPauseCollection ? "default" : "outline"
               }
               onClick={() =>
                 toggleSubscriptionMutation(currentSubscription._id, {
@@ -346,107 +373,31 @@ export function BillingSettingsPage() {
                 })
               }
               disabled={isTogglingPaused}
+              className='gap-2'
             >
+              {isTogglingPaused ? (
+                <Loader2 className='h-4 w-4 animate-spin' />
+              ) : currentSubscription.isPauseCollection ? (
+                <Play className='h-4 w-4' />
+              ) : (
+                <Pause className='h-4 w-4' />
+              )}
               {currentSubscription.isPauseCollection
-                ? "Active Payment"
-                : "Paused Payment"}
+                ? "Resume Payment"
+                : "Pause Payment"}
             </Button>
-            {/* {currentSubscription.status === "active" && (
-              <Button variant='destructive'>Cancel Subscription</Button>
-            )} */}
           </CardFooter>
         )}
       </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Billing History</CardTitle>
-          <CardDescription>
-            View all your previous subscription details.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Plan</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Period</TableHead>
-                <TableHead>Payment Method</TableHead>
-                <TableHead>Price </TableHead>
-                <TableHead>Subscription ID</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {subscriptions && subscriptions.length > 0 ? (
-                subscriptions.map((sub) => {
-                  const hasCycleData =
-                    sub.paymentType === "stripe" &&
-                    sub.stripeSubscriptionCycle?.length > 0;
+      {/* Billing History Card */}
+      {subscriptions && (
+        <HistoryCard
+          subscriptions={subscriptions}
+          setSelectedSub={(sub) => setSelectedSub(sub)}
+        />
+      )}
 
-                  const { price, currency, interval } =
-                    getSubscriptionDetails(sub);
-
-                  return (
-                    <TableRow
-                      key={sub._id}
-                      onClick={() =>
-                        (hasCycleData || sub.paymentType === "razorpay") &&
-                        setSelectedSub(sub)
-                      }
-                      className={
-                        hasCycleData || sub.paymentType === "razorpay"
-                          ? "cursor-pointer"
-                          : ""
-                      }
-                    >
-                      <TableCell className='font-medium'>
-                        {sub.planId.title}{" "}
-                        <span className='capitalize text-muted-foreground'>
-                          ({interval})
-                        </span>
-                      </TableCell>
-                      <TableCell>
-                        <Badge
-                          variant={getStatusVariant(sub.status)}
-                          className='capitalize'
-                        >
-                          {sub.status}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        {formatDate(sub.startDate)} - {formatDate(sub.endDate)}
-                      </TableCell>
-                      <TableCell className='capitalize'>
-                        {sub.paymentType}
-                      </TableCell>
-                      <TableCell>
-                        {formatCurrency(price, currency, {
-                          amountInSmallestUnit: false,
-                        })}
-                      </TableCell>
-                      <TableCell className='font-mono text-xs'>
-                        {sub.paymentType === "stripe"
-                          ? sub.stripeSubscriptionId
-                          : sub.razorpaySubscriptionId || "N/A"}
-                      </TableCell>
-                    </TableRow>
-                  );
-                })
-              ) : (
-                <TableRow>
-                  <TableCell
-                    colSpan={6}
-                    className='text-center text-muted-foreground'
-                  >
-                    No billing history found.
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
       <SubscriptionCycleDialog
         subscription={selectedSub}
         onOpenChange={(isOpen) => {

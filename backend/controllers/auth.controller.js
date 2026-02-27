@@ -66,13 +66,20 @@ export const loginWithEmail = async (req, res) => {
 
 // get user
 export const getCureentUser = async (req, res) => {
-  const directory = await singleFindDirectory(req.user.rootDirId, {
-    metaData: 1,
-  });
+  const directory = await singleFindDirectory(
+    req.user.rootDirId,
+    {
+      metaData: 1,
+    },
+    {
+      path: "userId",
+      select: "id name email picture role maxStorageBytes",
+    },
+  );
 
   res.status(200).json(
     new ApiResponse(200, "User login Successfuly", {
-      ...req.user,
+      ...directory?.userId._doc,
       totalUsedBytes: directory?.metaData?.size,
     }),
   );

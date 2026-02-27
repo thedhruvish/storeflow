@@ -2,7 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { APP_NAME } from "@/contansts";
 import { useUserStore } from "@/store/user-store";
 import { motion } from "framer-motion";
-import { Cloud, Moon, Sun, UserPlus, Menu } from "lucide-react";
+import { Cloud, Moon, Sun, UserPlus, Menu, Github } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useTheme } from "./theme-provider";
@@ -41,6 +41,16 @@ export const Navbar = () => {
             Pricing
           </Link>
 
+          <a
+            href='https://github.com'
+            target='_blank'
+            rel='noopener noreferrer'
+            className='flex items-center gap-1.5 hover:text-foreground hover:scale-105 transition-all duration-200'
+          >
+            <Github className='h-4 w-4' />
+            GitHub
+          </a>
+
           {/* <Link
             to='/self-host'
             className='hover:text-foreground hover:scale-105 transition-all duration-200'
@@ -49,7 +59,7 @@ export const Navbar = () => {
           </Link> */}
         </div>
 
-        <div className='flex items-center gap-4'>
+        <div className='flex items-center gap-2 sm:gap-4'>
           {/* Fixed Theme Toggle Button */}
           <button
             onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
@@ -59,6 +69,17 @@ export const Navbar = () => {
             <Sun className='h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0 absolute' />
             <Moon className='h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100 absolute' />
           </button>
+
+          {/* GitHub link for mobile */}
+          <a
+            href='https://github.com'
+            target='_blank'
+            rel='noopener noreferrer'
+            className='md:hidden relative h-9 w-9 rounded-full hover:bg-secondary flex items-center justify-center transition-colors'
+            aria-label='GitHub'
+          >
+            <Github className='h-5 w-5' />
+          </a>
 
           <div className='hidden md:flex items-center gap-4'>
             {user ? (
@@ -106,6 +127,15 @@ export const Navbar = () => {
                     >
                       Pricing
                     </Link>
+                    <a
+                      href='https://github.com'
+                      target='_blank'
+                      rel='noopener noreferrer'
+                      className='flex items-center gap-2 text-lg font-medium hover:text-primary transition-colors'
+                    >
+                      <Github className='h-5 w-5' />
+                      GitHub
+                    </a>
                     <Link
                       to='/self-host'
                       className='text-lg font-medium hover:text-primary transition-colors'
