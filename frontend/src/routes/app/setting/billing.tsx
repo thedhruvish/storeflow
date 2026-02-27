@@ -32,6 +32,7 @@ import {
   useToggleSubscriptionPaused,
   useUpdatePaymentDetails,
   type ApiSubscription,
+  useCanelRzpPayment,
 } from "@/api/setting-api";
 import { formatCurrency, formatDate, formatFileSize } from "@/utils/functions";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -45,7 +46,10 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Separator } from "@/components/ui/separator";
+import { ConfirmDialog } from "@/components/confirm-dialog";
 
 export const Route = createFileRoute("/app/setting/billing")({
   component: BillingSettingsPage,
@@ -53,6 +57,8 @@ export const Route = createFileRoute("/app/setting/billing")({
 
 export function BillingSettingsPage() {
   const [selectedSub, setSelectedSub] = useState<ApiSubscription | null>(null);
+  const [showCancelRzpDialog, setShowCancelRzpDialog] = useState(false);
+  const [cancelImmediately, setCancelImmediately] = useState(false);
   // Use the hook to fetch data
   const {
     data: subscriptions,
@@ -67,6 +73,10 @@ export function BillingSettingsPage() {
     mutate: updatePaymentDetailsMutation,
     isPending: isPendingUpdatePaymentDetails,
   } = useUpdatePaymentDetails();
+  const {
+    mutate: cancelRzpPaymentMutation,
+    isPending: isPendingCancelRzpPayment,
+  } = useCanelRzpPayment();
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -339,53 +349,87 @@ export function BillingSettingsPage() {
         </CardContent>
         {currentSubscription && (
           <CardFooter className='flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 border-t bg-muted/20 pt-4 pb-4'>
-            <Button
-              variant='outline'
-              onClick={updatePaymentDetails}
-              disabled={isPendingUpdatePaymentDetails}
-              className='gap-2'
-            >
-              <Settings className='h-4 w-4' />
-              {isPendingUpdatePaymentDetails ? (
-                <>
-                  <Loader2 className='h-4 w-4 animate-spin' />
-                  Loading...
-                </>
-              ) : (
-                "Manage Subscription"
-              )}
-            </Button>
-            <Button
-              variant={
-                currentSubscription.isPauseCollection ? "default" : "outline"
-              }
-              onClick={() =>
-                toggleSubscriptionMutation(currentSubscription._id, {
-                  onSuccess: () => {
-                    toast.success("Subscription toggled successfully");
-                    currentSubscription.isPauseCollection =
-                      !currentSubscription.isPauseCollection;
-                    currentSubscription.status =
-                      currentSubscription.isPauseCollection
-                        ? "paused"
-                        : "active";
-                  },
-                })
-              }
-              disabled={isTogglingPaused}
-              className='gap-2'
-            >
-              {isTogglingPaused ? (
-                <Loader2 className='h-4 w-4 animate-spin' />
-              ) : currentSubscription.isPauseCollection ? (
-                <Play className='h-4 w-4' />
-              ) : (
-                <Pause className='h-4 w-4' />
-              )}
-              {currentSubscription.isPauseCollection
-                ? "Resume Payment"
-                : "Pause Payment"}
-            </Button>
+            {/* LEFT SIDE ACTION */}
+            {currentSubscription.paymentType === "stripe" ? (
+              <Button
+                variant='outline'
+                onClick={updatePaymentDetails}
+                disabled={isPendingUpdatePaymentDetails}
+                className='gap-2'
+              >
+                <Settings className='h-4 w-4' />
+                {isPendingUpdatePaymentDetails ? (
+                  <>
+                    <Loader2 className='h-4 w-4 animate-spin' />
+                    Loading...
+                  </>
+                ) : (
+                  "Manage Subscription"
+                )}
+              </Button>
+            ) : (
+              <>
+                {["active", "partial_active"].includes(
+                  currentSubscription.status
+                ) && (
+                  <Button
+                    variant='destructive'
+                    onClick={() => setShowCancelRzpDialog(true)}
+                    disabled={isPendingCancelRzpPayment}
+                    className='gap-2'
+                  >
+                    <Settings className='h-4 w-4' />
+                    {isPendingCancelRzpPayment ? (
+                      <>
+                        <Loader2 className='h-4 w-4 animate-spin' />
+                        Cancelling...
+                      </>
+                    ) : (
+                      "Cancel Subscription"
+                    )}
+                  </Button>
+                )}
+              </>
+            )}
+            {["active", "partial_active", "paused", "active"].includes(
+              currentSubscription.status
+            ) && (
+              <>
+                <Button
+                  variant={
+                    currentSubscription.isPauseCollection
+                      ? "default"
+                      : "outline"
+                  }
+                  onClick={() =>
+                    toggleSubscriptionMutation(currentSubscription._id, {
+                      onSuccess: () => {
+                        toast.success("Subscription toggled successfully");
+                        currentSubscription.isPauseCollection =
+                          !currentSubscription.isPauseCollection;
+                        currentSubscription.status =
+                          currentSubscription.isPauseCollection
+                            ? "paused"
+                            : "active";
+                      },
+                    })
+                  }
+                  disabled={isTogglingPaused}
+                  className='gap-2'
+                >
+                  {isTogglingPaused ? (
+                    <Loader2 className='h-4 w-4 animate-spin' />
+                  ) : currentSubscription.isPauseCollection ? (
+                    <Play className='h-4 w-4' />
+                  ) : (
+                    <Pause className='h-4 w-4' />
+                  )}
+                  {currentSubscription.isPauseCollection
+                    ? "Resume Payment"
+                    : "Pause Payment"}
+                </Button>
+              </>
+            )}
           </CardFooter>
         )}
       </Card>
@@ -406,6 +450,84 @@ export function BillingSettingsPage() {
           }
         }}
       />
+
+      <ConfirmDialog
+        open={showCancelRzpDialog}
+        onOpenChange={setShowCancelRzpDialog}
+        title='Cancel Subscription'
+        desc='Please select how you want to cancel your subscription.'
+        confirmText='Confirm Cancel'
+        destructive={true}
+        isLoading={isPendingCancelRzpPayment}
+        handleConfirm={() => {
+          if (!currentSubscription) return;
+          cancelRzpPaymentMutation(
+            {
+              isImmediately: cancelImmediately,
+              subId: currentSubscription._id,
+            },
+            {
+              onSuccess: (data) => {
+                toast.success(
+                  data?.message || "Subscription cancelled successfully"
+                );
+                setShowCancelRzpDialog(false);
+              },
+              onError: (error: any) => {
+                toast.error(
+                  error?.response?.data?.message ||
+                    "Failed to cancel subscription"
+                );
+              },
+            }
+          );
+        }}
+      >
+        <RadioGroup
+          value={cancelImmediately ? "immediately" : "end_of_cycle"}
+          onValueChange={(val) => setCancelImmediately(val === "immediately")}
+          className='my-4 space-y-2'
+        >
+          <div className='flex space-x-2 items-start'>
+            <RadioGroupItem
+              value='end_of_cycle'
+              id='end_of_cycle'
+              className='mt-1'
+            />
+            <div className='grid gap-1.5'>
+              <Label
+                htmlFor='end_of_cycle'
+                className='cursor-pointer font-semibold'
+              >
+                Cancel at end of billing cycle
+              </Label>
+              <p className='text-sm text-muted-foreground'>
+                Your subscription will remain active until the end of the
+                current billing cycle.
+              </p>
+            </div>
+          </div>
+          <div className='flex space-x-2 items-start'>
+            <RadioGroupItem
+              value='immediately'
+              id='immediately'
+              className='mt-1'
+            />
+            <div className='grid gap-1.5'>
+              <Label
+                htmlFor='immediately'
+                className='cursor-pointer font-semibold'
+              >
+                Cancel immediately
+              </Label>
+              <p className='text-sm text-muted-foreground'>
+                Your subscription will end immediately. A prorated refund will
+                be issued for the remaining unused days.
+              </p>
+            </div>
+          </div>
+        </RadioGroup>
+      </ConfirmDialog>
     </div>
   );
 }

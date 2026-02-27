@@ -7,6 +7,7 @@ export const SUBSCRIPTION_STATUS = [
   "expired",
   "failed",
   "past_due",
+  "refund",
 ];
 export const PAYMENT_GETWAY = ["stripe", "razorpay"];
 

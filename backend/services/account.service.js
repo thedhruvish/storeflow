@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import { LOGIN_PROVIDER } from "../constants/constant.js";
+import { LOGIN_PROVIDER, PAYMENT_GETWAY } from "../constants/constant.js";
 import { DIRECTORY_UPLOAD_FOLDER } from "../constants/s3.constants.js";
 import AuthIdentity from "../models/AuthIdentity.model.js";
 import Directory from "../models/Directory.model.js";
@@ -16,6 +16,10 @@ import {
   pauseStripeSubscription,
   resumeStripeSubscription,
 } from "./stripe.service.js";
+import {
+  pauseRazorpaySubscription,
+  resumeRazorpaySubscription,
+} from "./razorpay.service.js";
 
 // subscriptions
 export const listSubscriptionsService = async (userId) => {
@@ -41,13 +45,22 @@ export const toggleSubscriptionService = async (subscriptionId) => {
   if (!subscription) {
     throw new ApiError(404, "Subscription not found");
   }
-
-  if (subscription.isPauseCollection) {
-    await pauseStripeSubscription(subscription.stripeSubscriptionId);
-  } else {
-    await resumeStripeSubscription(subscription.stripeSubscriptionId);
+  if (subscription.paymentType === PAYMENT_GETWAY[0]) {
+    if (subscription.isPauseCollection) {
+      await pauseStripeSubscription(subscription.stripeSubscriptionId);
+    } else {
+      await resumeStripeSubscription(subscription.stripeSubscriptionId);
+    }
+  } else if (subscription.paymentType === PAYMENT_GETWAY[1]) {
+    if (subscription.isPauseCollection) {
+      await pauseRazorpaySubscription(subscription.razorpaySubscriptionId);
+    } else {
+      await resumeRazorpaySubscription(subscription.razorpaySubscriptionId);
+    }
   }
 };
+
+
 
 export const getSubscriptionHistoryService = async (parentId) => {
   return Subscription.find({

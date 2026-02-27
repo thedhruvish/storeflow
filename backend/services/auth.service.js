@@ -8,7 +8,7 @@ import {
   exstingAuthIdentity,
   getOneAuthIdentity,
 } from "./authIdentity.service.js";
-import { createAndCheckLimitSession } from "./redis.service.js";
+import { createAndCheckLimitSession, deleteRedisKey } from "./redis.service.js";
 import { sendOtpToMail, verifyMailOTP } from "./mail.service.js";
 import { googleClient } from "../lib/google.client.js";
 import { LOGIN_PROVIDER } from "../constants/constant.js";
@@ -322,4 +322,18 @@ export const verifyAccConnectOtp = async (userSession, { email, password }) => {
 
 export const disConnectLinkAccount = async (id) => {
   await AuthIdentity.deleteOne({ _id: id });
+};
+
+export const descreesStorage = async (id, storageSize) => {
+  await User.updateOne(
+    {
+      _id: id,
+    },
+    {
+      $inc: {
+        maxStorageBytes: storageSize,
+      },
+    },
+  );
+  await deleteRedisKey(`user:${id}`);
 };

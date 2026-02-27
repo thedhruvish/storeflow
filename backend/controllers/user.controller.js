@@ -8,6 +8,8 @@ import {
   pauseStripeSubscription,
   resumeStripeSubscription,
 } from "../services/stripe.service.js";
+import { cancelAndRefundSubscription } from "../services/razorpay.service.js";
+import ApiError from "../utils/ApiError.js";
 
 export const listAllSubscription = async (req, res) => {
   const userId = req.user;
@@ -47,6 +49,36 @@ export const toggleSubscriptionStatus = async (req, res) => {
     await resumeStripeSubscription(subscription.stripeSubscriptionId);
   }
   res.status(200).json(new ApiResponse(200, "Subscription status toggled"));
+};
+
+export const cancelRazorpayPaymentController = async (req, res) => {
+  const isImmediately = req.body;
+
+  const subscription = await Subscription.findByIdAndUpdate(
+    req.params.id,
+    {
+      status: isImmediately ? "refund" : "cancelled",
+      isPauseCollection: true,
+      isActive: isImmediately ? false : true,
+      cancelDate: new Date(),
+    },
+    { new: true },
+  ).populate("planId");
+
+  if (!subscription) {
+    throw new ApiError(404, "Subscription not found");
+  }
+
+  const responseData = await cancelAndRefundSubscription(
+    subscription,
+    isImmediately,
+  );
+
+  return res
+    .status(200)
+    .json(
+      new ApiResponse(200, "Subscription status was changed", responseData),
+    );
 };
 
 export const getUserSubscriptionHistory = async (req, res) => {

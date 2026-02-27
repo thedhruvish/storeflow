@@ -77,7 +77,30 @@ export const useUpdatePaymentDetails = () => {
   return useMutation({
     mutationFn: async () => {
       const response = await axiosClient.get(`/user/update-payment-details`);
-      console.log(response.data);
+      return response.data.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["settings", "subscription"] });
+    },
+  });
+};
+
+export const useCanelRzpPayment = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      isImmediately,
+      subId,
+    }: {
+      isImmediately: boolean;
+      subId: string;
+    }) => {
+      const response = await axiosClient.post(
+        `/user/cancel-razorpay-payment/${subId}`,
+        {
+          isImmediately,
+        }
+      );
       return response.data.data;
     },
     onSuccess: () => {
