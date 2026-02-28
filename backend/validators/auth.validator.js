@@ -62,3 +62,12 @@ export const dangerZoneValidator = z.object({
     error: "invalid method type",
   }),
 });
+
+export const updateUserInfoValidator = z.object({
+  name: z.string("User name is Required"),
+});
+
+export const uploadAvatarValidator = z.object({
+  extension: z.string("File Extenstion are the Required"),
+  contentType: z.string("File ContentType are the Required"),
+});

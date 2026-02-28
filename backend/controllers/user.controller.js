@@ -10,6 +10,40 @@ import {
 } from "../services/stripe.service.js";
 import { cancelAndRefundSubscription } from "../services/razorpay.service.js";
 import ApiError from "../utils/ApiError.js";
+import { generatePresignedUrl } from "../services/s3.service.js";
+import { AVATAR_UPLOAD_FOLDER } from "../constants/s3.constants.js";
+import { updateUserInfo } from "../services/user.service.js";
+
+export const genAvatarImgUploadLink = async (req, res) => {
+  const { extension, contentType } = req.body;
+  const userId = req.user._id;
+  const fileName = `${userId}.${extension}`;
+  const presignedUrl = await generatePresignedUrl(
+    fileName,
+    contentType,
+    AVATAR_UPLOAD_FOLDER,
+  );
+
+  await updateUserInfo(userId, {
+    $set: {
+      picture: `${AVATAR_UPLOAD_FOLDER}${fileName}`,
+    },
+  });
+  res
+    .status(201)
+    .json(new ApiResponse(201, "Genetor a presigned Url", presignedUrl));
+};
+
+export const updateUserDetails = async (req, res) => {
+  const { name } = req.body;
+
+  await updateUserInfo(req.user._id, {
+    $set: {
+      name,
+    },
+  });
+  res.status(201).json(new ApiResponse(201, "Update user info"));
+};
 
 export const listAllSubscription = async (req, res) => {
   const userId = req.user;

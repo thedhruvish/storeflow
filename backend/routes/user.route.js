@@ -11,8 +11,16 @@ import {
   dangerZoneControll,
 } from "../controllers/account.controller.js";
 import { validateInput } from "../utils/validateInput.js";
-import { dangerZoneValidator } from "../validators/auth.validator.js";
-import { cancelRazorpayPaymentController } from "../controllers/user.controller.js";
+import {
+  dangerZoneValidator,
+  updateUserInfoValidator,
+  uploadAvatarValidator,
+} from "../validators/auth.validator.js";
+import {
+  cancelRazorpayPaymentController,
+  updateUserDetails,
+  genAvatarImgUploadLink,
+} from "../controllers/user.controller.js";
 
 const router = express.Router();
 
@@ -22,6 +30,18 @@ router.get("/settings/info", settingInfo);
 router.param("twoFactorId", paramsValidation);
 
 router.param("id", paramsValidation);
+
+router.patch(
+  "/update",
+  validateInput(updateUserInfoValidator),
+  updateUserDetails,
+);
+
+router.post(
+  "/avatar-gen",
+  validateInput(uploadAvatarValidator),
+  genAvatarImgUploadLink,
+);
 
 router.post("/cancel-razorpay-payment/:id", cancelRazorpayPaymentController);
 

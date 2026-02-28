@@ -1,18 +1,8 @@
 import { useState } from "react";
 import { Link } from "@tanstack/react-router";
-import { Info, Sparkles, Pencil, Camera, Upload } from "lucide-react";
+import { Info, Sparkles, Pencil } from "lucide-react";
 import { useStorageStatus } from "@/hooks/use-storage-status";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
 import {
   Tooltip,
@@ -21,6 +11,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { UserAvatarProfile } from "@/components/user-avatar-profile";
+import { ProfileUpdateDialog } from "./profile-edit-dialog";
 import type { UserProfile } from "./types";
 
 interface ProfileHeaderProps {
@@ -30,9 +21,7 @@ interface ProfileHeaderProps {
 export function ProfileHeader({ user }: ProfileHeaderProps) {
   const { totalUsedBytes, maxStorageBytes, storageUsedPercentage } =
     useStorageStatus();
-  // Mocking update state
   const [isEditOpen, setIsEditOpen] = useState(false);
-  const [name, setName] = useState(user.name);
 
   const showUpgrade = !user.isPremium;
 
@@ -123,63 +112,12 @@ export function ProfileHeader({ user }: ProfileHeaderProps) {
             </Button>
           )}
         </div>
+        <ProfileUpdateDialog
+          user={user}
+          setIsEditOpen={(bool: boolean) => setIsEditOpen(bool)}
+          isEditOpen={isEditOpen}
+        />
       </div>
-
-      {/* Edit Profile Dialog */}
-      <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
-        <DialogContent className='sm:max-w-[425px]'>
-          <DialogHeader>
-            <DialogTitle>Edit Profile</DialogTitle>
-            <DialogDescription>
-              Make changes to your profile here. Click save when you're done.
-            </DialogDescription>
-          </DialogHeader>
-          <div className='grid gap-6 py-4'>
-            <div className='flex flex-col items-center gap-4'>
-              <div className='relative'>
-                <UserAvatarProfile
-                  user={user}
-                  className='h-24 w-24 text-4xl'
-                  showInfo={false}
-                />
-                <div className='absolute bottom-0 right-0'>
-                  <Button
-                    size='icon'
-                    variant='secondary'
-                    className='rounded-full h-8 w-8 shadow-sm'
-                  >
-                    <Camera className='h-4 w-4' />
-                  </Button>
-                </div>
-              </div>
-              <Button
-                variant='outline'
-                size='sm'
-                className='w-full max-w-[150px]'
-              >
-                <Upload className='mr-2 h-3 w-3' />
-                Change Avatar
-              </Button>
-            </div>
-            <div className='grid gap-2'>
-              <Label htmlFor='name'>Display Name</Label>
-              <Input
-                id='name'
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-              />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant='outline' onClick={() => setIsEditOpen(false)}>
-              Cancel
-            </Button>
-            <Button type='submit' onClick={() => setIsEditOpen(false)}>
-              Save changes
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }

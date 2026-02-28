@@ -1,1 +1,11 @@
 export const APP_NAME = "StoreOne";
+
+export const AVATAR_MAX_FILE_SIZE = 2 * 1024 * 1024; // 2MB
+
+export const AVATAR_ACCEPTED_TYPES = {
+  "image/jpeg": [".jpg", ".jpeg"],
+  "image/png": [".png"],
+  "image/webp": [".webp"],
+};
+
+export type AVATAR_ACCEPTED_TYPES_T = typeof AVATAR_ACCEPTED_TYPES;

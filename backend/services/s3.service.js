@@ -59,6 +59,7 @@ export const getSignedUrlForGetObject = async (
   fileName,
   isDownload = false,
   parentDir = DIRECTORY_UPLOAD_FOLDER,
+  expiresIn = PRESIGNED_URL_EXPIRATION,
 ) => {
   try {
     let url = null;
@@ -71,6 +72,7 @@ export const getSignedUrlForGetObject = async (
         fileName,
         isDownload,
         parentDir,
+        expiresIn,
       );
     } else {
       const command = new GetObjectCommand({
@@ -79,11 +81,12 @@ export const getSignedUrlForGetObject = async (
         ResponseContentDisposition: `${isDownload ? "attachment;" : "inline;"} filename="${fileName}"`,
       });
       url = await getSignedUrl(s3Client, command, {
-        expiresIn: PRESIGNED_URL_EXPIRATION,
+        expiresIn,
       });
     }
     return url;
   } catch (error) {
+    console.log(error);
     return null;
   }
 };

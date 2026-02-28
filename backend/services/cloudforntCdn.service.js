@@ -7,8 +7,6 @@ const cloudfrontDistributionDomain = process.env.CLOUDFRONT_DISTRIBUTION_DOMAIN;
 
 const keyPairId = process.env.KEY_PAIR_ID;
 
-const dateLessThan = new Date(Date.now() + 3600 * 1000);
-
 let cachedPrivateKey;
 
 const sanitizeFilenameASCII = (filename) => {
@@ -49,6 +47,7 @@ export const generateCloudfrontSignedUrl = async (
   s3ObjectKey,
   fileName,
   isDownload,
+  expiresIn, //seconds
 ) => {
   let privateKey;
   if (CLOUDFRONT_PRIVATE_KEY) {
@@ -57,6 +56,8 @@ export const generateCloudfrontSignedUrl = async (
     privateKey = await getPrivateKey();
   }
   const safeFileName = sanitizeFilenameASCII(fileName);
+  // expiresIn is in seconds
+  const dateLessThan = new Date(Date.now() + expiresIn * 1000);
   const url = `${cloudfrontDistributionDomain}/${s3ObjectKey}?response-content-disposition=${encodeURIComponent(`${isDownload ? "attachment" : "inline"} ;filename="${safeFileName}"`)}`;
   const signedUrl = getSignedUrl({
     url,

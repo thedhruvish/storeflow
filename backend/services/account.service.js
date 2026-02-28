@@ -1,6 +1,9 @@
 import mongoose from "mongoose";
 import { LOGIN_PROVIDER, PAYMENT_GETWAY } from "../constants/constant.js";
-import { DIRECTORY_UPLOAD_FOLDER } from "../constants/s3.constants.js";
+import {
+  AVATAR_UPLOAD_FOLDER,
+  DIRECTORY_UPLOAD_FOLDER,
+} from "../constants/s3.constants.js";
 import AuthIdentity from "../models/AuthIdentity.model.js";
 import Directory from "../models/Directory.model.js";
 import Document from "../models/Document.model.js";
@@ -10,7 +13,7 @@ import TwoFa from "../models/TwoFa.model.js";
 import User from "../models/User.model.js";
 import ApiError from "../utils/ApiError.js";
 import { deleteAllUserSessions } from "./redis.service.js";
-import { bulkDeleteS3Objects } from "./s3.service.js";
+import { bulkDeleteS3Objects, getSignedUrlForGetObject } from "./s3.service.js";
 import {
   createCustomerPortalSession,
   pauseStripeSubscription,
@@ -59,8 +62,6 @@ export const toggleSubscriptionService = async (subscriptionId) => {
     }
   }
 };
-
-
 
 export const getSubscriptionHistoryService = async (parentId) => {
   return Subscription.find({
@@ -139,7 +140,13 @@ export const getSettingInfoService = async (userId) => {
             ? userInfo.githubEmail
             : null,
   }));
-
+  const avatarUrl = await getSignedUrlForGetObject(
+    userInfo.picture,
+    "my_avatar.png",
+    false,
+    AVATAR_UPLOAD_FOLDER,
+    8640 * 7,
+  );
   return {
     twoFactor: passkey,
     authenticate,
@@ -151,7 +158,7 @@ export const getSettingInfoService = async (userId) => {
     user: {
       name: userInfo.name,
       email: userInfo.email,
-      avatarUrl: userInfo.picture,
+      avatarUrl,
       isPremium: Boolean(isPremium),
     },
   };

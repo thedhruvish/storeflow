@@ -26,6 +26,8 @@ import {
   getOneAuthIdentity,
 } from "../services/authIdentity.service.js";
 import { SESSION_OPTIONS } from "../constants/constant.js";
+import { getSignedUrlForGetObject } from "../services/s3.service.js";
+import { AVATAR_UPLOAD_FOLDER } from "../constants/s3.constants.js";
 
 // register user
 export const registerWithEmail = async (req, res) => {
@@ -76,10 +78,20 @@ export const getCureentUser = async (req, res) => {
       select: "id name email picture role maxStorageBytes",
     },
   );
+  const user = directory.userId;
 
+  const avatarUrl = await getSignedUrlForGetObject(
+    directory.userId.picture,
+    "my_avatar.png",
+    false,
+    AVATAR_UPLOAD_FOLDER,
+    8640 * 7,
+  );
+  user.picture = avatarUrl;
   res.status(200).json(
     new ApiResponse(200, "User login Successfuly", {
-      ...directory?.userId._doc,
+      picture: avatarUrl,
+      ...user,
       totalUsedBytes: directory?.metaData?.size,
     }),
   );
