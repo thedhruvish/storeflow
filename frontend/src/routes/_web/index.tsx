@@ -2,9 +2,8 @@ import { useEffect, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { Features } from "@/pages/web/home/features";
 import { Hero } from "@/pages/web/home/here";
-import { Integrations } from "@/pages/web/home/integration";
 import { SelfHostSection } from "@/pages/web/home/self-host";
-import { Testimonials } from "@/pages/web/home/testimonials";
+import { StartFreeTrial } from "@/pages/web/home/start-free-trial";
 import { Uploading } from "@/pages/web/home/uploading";
 
 export const Route = createFileRoute("/_web/")({
@@ -22,9 +21,10 @@ function LandingPage() {
       <Hero />
       <Features />
       <Uploading />
-      <Integrations />
+      {/* <Integrations /> */}
       <SelfHostSection />
-      <Testimonials />
+      {/* <Testimonials /> */}
+      <StartFreeTrial />
     </main>
   );
 }

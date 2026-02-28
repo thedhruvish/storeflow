@@ -59,10 +59,10 @@ export const Uploading = () => {
             <div className='inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-bold mb-4 uppercase tracking-wider'>
               <Wifi className='h-3 w-3' /> Edge Computing
             </div>
-            <h2 className='text-4xl md:text-5xl font-bold mb-6 bg-clip-text text-transparent bg-linear-to-r from-foreground to-foreground/60'>
+            <h2 className='text-4xl md:text-5xl font-bold mb-4 bg-clip-text text-transparent bg-linear-to-r from-foreground to-foreground/60 pb-2'>
               Lightning Fast Uploads
             </h2>
-            <p className='text-lg text-muted-foreground mb-8 leading-relaxed'>
+            <p className='text-lg text-muted-foreground mb-6 leading-relaxed'>
               Experience our optimized pipeline. Files are encrypted locally
               before transmission, ensuring speed without compromising security.
             </p>

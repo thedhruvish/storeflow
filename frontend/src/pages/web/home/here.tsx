@@ -27,19 +27,18 @@ export const Hero = () => {
             variants={fadeInUp}
             className='text-5xl md:text-7xl font-extrabold tracking-tight mb-8 leading-[1.1]'
           >
-            Your Storage, <br />
+            Own Your Storage, <br />
             <span className='text-transparent bg-clip-text bg-linear-to-r from-primary to-blue-600'>
-              Simplified Forever.
+              Not Your Vendor.
             </span>
           </motion.h1>
-
           <motion.p
             variants={fadeInUp}
             className='text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto mb-10 leading-relaxed'
           >
-            The open-source storage solution that integrates with Google Drive.
-            Clean, organize, and secure your digital life with zero vendor
-            lock-in.
+            An open-source, bring-your-own-storage platform that connects Google
+            Drive and S3-compatible clouds. Store files in your own accounts,
+            stay in control, and avoid vendor lock-in forever.
           </motion.p>
 
           <motion.div
@@ -102,7 +101,7 @@ export const Hero = () => {
                   All sources connected
                 </h3>
                 <p className='text-muted-foreground'>
-                  Google Drive, AWS S3, and Local Storage unified.
+                  Google Drive and AWS S3 unified.
                 </p>
               </div>
             </div>

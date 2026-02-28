@@ -1,4 +1,11 @@
-import { Braces, Cloud, Lock, Server, Share2, Trash2 } from "lucide-react";
+import {
+  Cloud,
+  Fingerprint,
+  Lock,
+  Server,
+  Share2,
+  ShieldCheck,
+} from "lucide-react";
 
 export const fadeInUp = {
   hidden: { opacity: 0, y: 20 },
@@ -28,23 +35,24 @@ export const featuresList = [
     desc: "Seamlessly migrate and organize files from Google Drive.",
   },
   {
-    icon: Braces,
-    title: "100% Open Source",
-    desc: "Self-host your instance. Full transparency and data sovereignty.",
-  },
-  {
-    icon: Trash2,
-    title: "Smart Cleaning",
-    desc: "AI-powered detection of duplicates and large forgotten files.",
-  },
-  {
-    icon: Lock,
-    title: "Client-Side Encryption",
-    desc: "Files are encrypted on your device before they ever leave.",
-  },
-  {
     icon: Share2,
     title: "Secure Sharing",
     desc: "Generate time-limited, password-protected sharing links.",
+  },
+  {
+    icon: ShieldCheck,
+    title: "Modern Authentication",
+    desc: "Sign in using Google OAuth, GitHub OAuth, or traditional email and password authentication.",
+  },
+  {
+    icon: Fingerprint,
+    title: "Advanced MFA & Passkeys",
+    desc: "Protect accounts with multi-factor authentication including email OTP, TOTP authenticator apps, and passkeys.",
+  },
+
+  {
+    icon: Lock,
+    title: "Low Cast for the host",
+    desc: "It compatible to run serverless envriament and also it can run you vps both compatible",
   },
 ] as const;

@@ -80,7 +80,7 @@ export function ActiveSessions({
       />
 
       <div className='rounded-xl border bg-card shadow-sm overflow-hidden'>
-        <ScrollArea className='h-[320px] rounded-t-xl'>
+        <ScrollArea className='h-80 rounded-t-xl'>
           <div className='divide-y'>
             {sessions.map((session) => {
               const isCurrent = session._id === activeSessionId;
