@@ -47,16 +47,19 @@ export const Hero = () => {
           >
             <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
               <Link
-                to='/pricing'
+                to='/auth/signup'
                 className='flex items-center justify-center gap-2 bg-primary text-primary-foreground px-8 py-4 rounded-xl text-lg font-semibold transition-all shadow-xl hover:shadow-primary/25'
               >
-                View Pricing
+                Upload
               </Link>
             </motion.div>
             <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-              <button className='flex items-center justify-center gap-2 bg-secondary text-secondary-foreground px-8 py-4 rounded-xl text-lg font-semibold hover:bg-secondary/80 transition-all border border-border'>
-                <LogIn className='h-5 w-5' /> View Demo
-              </button>
+              <Link
+                to={"/pricing"}
+                className='flex items-center justify-center gap-2 bg-secondary text-secondary-foreground px-8 py-4 rounded-xl text-lg font-semibold hover:bg-secondary/80 transition-all border border-border'
+              >
+                <LogIn className='h-5 w-5' /> View Pricing
+              </Link>
             </motion.div>
           </motion.div>
         </motion.div>
