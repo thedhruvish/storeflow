@@ -71,7 +71,6 @@ export const getSignedUrlForGetObject = async (
         keyObject,
         fileName,
         isDownload,
-        parentDir,
         expiresIn,
       );
     } else {

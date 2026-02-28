@@ -58,7 +58,7 @@ export default function AccountDeletionStatus() {
               <Mail className='h-4 w-4' />
               <AlertTitle>Contact Administration</AlertTitle>
               <AlertDescription>
-                Email: info@example.com
+                Email:support@storeone.cloud
                 <br />
                 Subject: "Delete Account Active Request"
               </AlertDescription>
