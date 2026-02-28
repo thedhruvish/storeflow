@@ -37,7 +37,7 @@ function RouteComponent() {
 
   if (!user) return null;
   return (
-    <div className='[--header-height:calc(theme(spacing.14))]'>
+    <div className='[--header-height:calc(--spacing(14))]'>
       <SidebarProvider
         className='flex flex-col'
         defaultOpen={appearance.sidebar}

@@ -1,8 +1,7 @@
+import { GITHUB_REPO_LINK } from "@/contansts";
 import { motion } from "framer-motion";
 import { ArrowRight, Github } from "lucide-react";
 import { fadeInUp } from "./helper";
-
-const GITHUB_REPO_LINK = "https://github.com/thedhruvish/storeone";
 
 export const SelfHostSection = () => {
   return (

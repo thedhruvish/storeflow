@@ -2,6 +2,7 @@ import { Outlet, createRootRoute } from "@tanstack/react-router";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
 import Error404 from "@/components/status-code/404";
+import Error500 from "@/components/status-code/500";
 
 export const Route = createRootRoute({
   component: () => (
@@ -16,4 +17,5 @@ export const Route = createRootRoute({
     </>
   ),
   notFoundComponent: () => <Error404 />,
+  errorComponent: () => <Error500 />,
 });
